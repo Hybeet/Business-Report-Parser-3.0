@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Business Parser 3.0 - Hybrid System</title>
+    <link rel="icon" type="image/png" href="favicon.png">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="main-wrapper">
+        <header>
+            <h2>📊 Business Report Parser 3.0 Pro</h2>
+            <p>Unified Data Extraction, Interactive Verification Form and Quick Utilities.</p>
+        </header>
+
+        <div class="dashboard-grid">
+            <div class="left-compartment">
+                <div class="column panel">
+                    <h3>1. Paste Report</h3>
+                    <textarea id="reportInput" placeholder="Paste your daily report here..."></textarea>
+                    <button type="button" id="autoFillBtn" class="secondary-btn">Step 1: Extract Data ➔</button>
+                </div>
+                <div class="mini-calc-panel column panel">
+                    <h3>Next Day Collection Calculator</h3>
+                    <small>Calculate next day's collection based on today's data</small>
+                    <div class="calc-grid">
+                        <div>
+                            <input type="number" id="supposeColl2" placeholder="Supposed Collection" class="calc-input">
+                        </div>
+                        <input type="number" id="calcCell2" placeholder="Finished Deals" class="calc-input">
+                        <input type="number" id="calcCell3" placeholder="New Deals" class="calc-input">
+                    </div>
+                    <button type="button" id="calcNextDayBtn" class="calc-action-btn">Calculate Next Day Collection</button>
+                    <div class="calc-result-box">
+                        <span>Next Day Collection:</span>
+                        <strong id="nextDayCollection">₦0.00</strong>
+                    </div>
+                </div>  
+            </div>
+
+            <div class="column panel">
+                <h3>2. Verify Data</h3>
+                
+                <div class="metadata-bar">
+                    <div class="metadata-group">
+                        <label>Extracted Date:</label>
+                        <input type="text" id="displayDate" placeholder="Waiting for extraction..." readonly>
+                    </div>
+                    <div class="metadata-group">
+                        <label>Extracted Market/Location:</label>
+                        <input type="text" id="displayMarket" placeholder="Waiting for extraction..." readonly>
+                    </div>
+                </div>
+
+                <form id="parserForm">
+                    <div class="form-section">
+                        <h4>Cash Handled</h4>
+                        <div class="grid-2">
+                            <div class="input-group"><label>Opening Cash</label><input type="number" id="openingCash" value="0"></div>
+                            <div class="input-group"><label>Bank Deposit</label><input type="number" id="TotalDeposit" value="0"></div>
+                            <div class="input-group"><label>Office Cash</label><input type="number" id="officecash" value="0"></div>
+                            <div class="input-group"><label>Cost of Deals</label><input type="number" id="costOfDeals" value="0"></div>
+                            <div class="input-group"><label>Interest</label><input type="number" id="interestOnDeals" value="0"></div>
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <h4>Collection Analysis</h4>
+                        <div class="input-group"><label>Supposed Collection</label><input type="number" id="supposeColl" value="0"></div>
+                        <div class="grid-2">
+                            <div class="input-group"><label>Default</label><input type="number" id="defaultAmt" value="0"></div>
+                            <div class="input-group"><label>Recovery</label><input type="number" id="recovery" value="0"></div>
+                            <div class="input-group"><label>Today's PD</label><input type="number" id="todayPd" value="0"></div>
+                            <div class="input-group"><label>Used PD</label><input type="number" id="usedPd" value="0"></div>
+                        </div>
+                        <div class="input-group"><label>Pay Off Collected</label><input type="number" id="payOff" value="0"></div>
+                        <div class="grid-2">
+                            <div class="input-group"><label>Forms Sold</label><input type="number" id="formsSold" value="0"></div>
+                            <div class="input-group"><label>Cards Sold</label><input type="number" id="cardsSold" value="0"></div>
+                        </div>
+                    </div>
+                    <button type="button" id="calculateBtn">Step 2: Run Calculation &amp; Sync Ledger</button>
+                </form>
+
+                <div class="mini-calc-panel2">
+                    <h3>Outstanding Calculator</h3>
+                    <small>Calculate Outstanding based on today's data</small>
+                    <div class="calc-grid2">
+                        <div>
+                            <input type="number" id="inheritedoutstanding" placeholder="Inherited Outstanding" class="calc-input" value="0">
+                        </div>
+                        <div>
+                            <input type="number" id="myoutstanding" placeholder="My Outstanding" class="calc-input" value="0">
+                        </div>
+                        <div>
+                            <input type="number" id="defaultAmt2" placeholder="Default" class="calc-input" value="0">
+                        </div>
+                        <div>
+                            <input type="number" id="recovery2" placeholder="Recovery" class="calc-input" value="0">
+                        </div>                    
+                    </div>
+                    <button type="button" id="calcOutstandingBtn" class="calc-action-btn">Calculate Outstanding</button>
+                    <div class="calc-result-box">
+                        <span>Outstanding:</span>
+                        <strong id="outstandingResult">₦0.00</strong>
+                    </div>
+                </div>  
+            </div>
+
+            <div class="column">
+                <div id="errorBox" class="hidden caution">
+                    <strong>⛔ Missing in Report:</strong>
+                    <ul id="missingList"></ul>
+                </div>
+
+                <div id="dashboard" class="hidden">
+                    <div class="result-card total-cash-card">
+                        <small>Calculated Total Cash</small>
+                        <h2 id="totalCashDisplay">₦0.00</h2>
+                    </div>
+                    <div class="result-card actual-coll-card">
+                        <small>Actual Collection</small>
+                        <h2 id="actualDisplay">₦0.00</h2>
+                    </div>
+
+                    <div class="audit-panel panel">
+                        <h3>Data Audit Trail</h3>
+                        <div id="tableContainer"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <footer>
+                <p>To get your synced Data click the button below:</p>
+            <button type="button" id="syncBtn" class="primary-btn">
+                <a href="https://docs.google.com/spreadsheets/d/113ybJNtsmhwXSPuKVpYcB9LzW6ooDTNA9cMfXfooLxs/edit?usp=sharing" target="_blank">Sync Data & View Dashboard</a>
+            </button>
+        </footer>
+    </div>
+    <script src="script2.js"></script>
+</body>
+</html>
