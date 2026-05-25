@@ -89,6 +89,7 @@ function extractData() {
     // Auto-map report text numbers to Form IDs
     const mapping = {
         'openingCash': getValue("Opening Cash[a-z]*"),
+        'openingpd': getValue("Opening Pa[a-z]*"),
         'todayPd': getValue("Today.s Pa[a-z]*"),
         'officecash': getValue("Cash fro[a-z]*"),
         'supposeColl': getValue("Suppos[a-z]* Collection"),
@@ -103,7 +104,7 @@ function extractData() {
         'defaultAmt': getValue("Default"),
         'defaultAmt2': getValue("Default"),
         'costOfDeals': getValue("Cost of Deals"),
-        'usedPd': getValue("Used Pay down"),
+        'usedPd': getValue("Use[a-z]* Pa[a-z]*down"),
         'previousoutstanding': getValue("Previous Outstanding"),
         'inheritedoutstanding': getValue("Inherited Outstanding"),
         'myoutstanding': getValue("My Outstanding")
@@ -134,6 +135,7 @@ function runCalculation() {
 
     const data = {
         opening: getVal('openingCash'),
+        openingpd: getVal('openingpd'),
         frmoffice: getVal('officecash'),
         suppose: getVal('supposeColl'),
         supposecoll2: getVal('supposeColl2'),
@@ -161,11 +163,40 @@ function runCalculation() {
         return;
     }
 
-    const totalCash = (data.opening + data.frmoffice + data.suppose + data.recovery + data.interest + data.forms + data.cards + 
-        data.payoff + data.todayPd - data.usedPd) - (data.deposit + data.defaultAmt + data.deals);
-    const actualCollection = (data.suppose - data.defaultAmt + data.recovery + data.payoff + data.todayPd - data.usedPd);
-    const computedNextDayCollection = data.suppose - data.calcCell2 + data.calcCell3;
-    const computedTotalOutstanding = data.previousOut + data.defaultAmt2 - data.recovery;
+    const totalCash = (
+        data.opening + 
+        data.openingpd + 
+        data.frmoffice + 
+        data.suppose + 
+        data.recovery + 
+        data.interest + 
+        data.forms + 
+        data.cards + 
+        data.payoff + 
+        data.todayPd
+    ) - (
+        data.usedPd + 
+        data.deposit + 
+        data.defaultAmt + 
+        data.deals);
+
+    const actualCollection = (
+        data.suppose - 
+        data.defaultAmt + 
+        data.recovery + 
+        data.payoff + 
+        data.todayPd - 
+        data.usedPd);
+
+    const computedNextDayCollection = 
+    data.suppose - 
+    data.calcCell2 + 
+    data.calcCell3;
+
+    const computedTotalOutstanding = 
+    data.previousOut + 
+    data.defaultAmt2 - 
+    data.recovery;
 
     document.getElementById('nextDayCollection').innerText = "₦" + computedNextDayCollection.toLocaleString();
     document.getElementById('outstandingResult').innerText = "₦" + computedTotalOutstanding.toLocaleString();
