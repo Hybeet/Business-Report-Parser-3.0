@@ -1,4 +1,4 @@
-//Unicode Normalization Interceptor
+// Unicode Normalization Interceptor
 function normalizeText(text) {
     if (!text) return "";
     return text.normalize('NFKD').replace(/[\u{1D400}-\u{1D7FF}]/gu, char => {
@@ -10,16 +10,22 @@ function normalizeText(text) {
     });
 } 
 
-//Global Variables to securely cache a raw paste box metadata value
+// Global Variables to securely cache a raw paste box metadata value
 let extractedMarketName = "Unknown Market"; 
 let extractedReportDate = ""; 
     
-function getFormattedCurrentdate()  {
-    const today = new Date();
-    const day = String(today.getDate() - 1).padStart(2, '0');
-    const month = String(today.getMonth() + 1).padStart(2, '0');
-    const year = today.getFullYear();
+// Helper Function to cleanly format any Date Object to DD/MM/YYYY
+function formatDateToString(dateObj) {
+    const day = String(dateObj.getDate()).padStart(2, '0');
+    const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+    const year = dateObj.getFullYear();
     return `${day}/${month}/${year}`;
+}
+
+// Generates the current calendar date as a dynamic fallback string
+function getFormattedCurrentdate() {
+    const today = new Date();
+    return formatDateToString(today);
 }
 
 // --- EXTRACTION LOGIC ---
@@ -28,22 +34,37 @@ function extractData() {
     const text = normalizeText(rawText);
     const missingWords = [];
 
+    // Set dynamic default fallback date
     extractedReportDate = getFormattedCurrentdate();
 
     // 1. DEDICATED TEXT EXTRACTION ENGINE (For Dates & Market Names)
-    const dateMatch = text.match(/(?:Date):?\s*[^0-9]*([0-9]{1,2}\/[0-9]{1,2}\/[0-9]{4})/i);
+    
+    // Stabilized Date Extractor: Finds "Date", skips formatting obstacles like asterisks or colons, captures DD/MM/YYYY or DD/M/YY
+    const dateRegex = /Date[^*:\n]*[*:]*\s*([0-9]{1,2}\/[0-9]{1,2}\/([0-9]{2,4}))/i;
+    const dateMatch = text.match(dateRegex);
     if (dateMatch) {
-        extractedReportDate = dateMatch[1].trim();
+        let matchedDate = dateMatch[1].trim(); 
+        let parts = matchedDate.split('/');
+        let day = parts[0].padStart(2, '0');
+        let month = parts[1].padStart(2, '0');
+        let year = parts[2];
+        
+        // Pad 2-digit years cleanly up to 4 digits
+        if (year.length === 2) {
+            year = '20' + year;
+        }
+        extractedReportDate = `${day}/${month}/${year}`; 
+    } else {
+        missingWords.push("Report Date");
     }
 
-    // New clean strategy: look for "Market/Location", "Location", "Market", or "Branch" 
-    // and grab the text words following it up to the end of that text line.
-    //const marketMatch = text.match(/(?:Market[a-z]*\/Location[a-z]*|Location[a-z]*|Market[a-z]*|Branch[a-z]*):?\s*([A-Za-z0-9\s._-]+)/i);
-    const marketRegex = /(?:Marke[a-z]*|Location[a-z]*)+(?:\/|Location[a-z]*)*[^A-Za-z0-9\n]*([A-Za-z0-9\s._-]+)/i;
+    // Stabilized Market Extractor: Finds "Market" or "Location", sweeps past symbols, captures text string safely
+    const marketRegex = /(?:Marke[a-z]*|Locat[a-z]*)[^*:\n]*[*:]*\s*([A-Za-z0-9\s._-]+)/i;
     const marketMatch = text.match(marketRegex);
-
     if (marketMatch && marketMatch[1].trim() !== "") {
-        extractedMarketName = marketMatch[1].trim();
+        let rawMarket = marketMatch[1].trim();
+        // Convert to Title Case to keep matches strictly predictable (e.g., "Karmo Market")
+        extractedMarketName = rawMarket.toLowerCase().replace(/\b\w/g, char => char.toUpperCase());
     } else {
         extractedMarketName = "Unknown Market";
         missingWords.push("Market Name");
@@ -83,6 +104,7 @@ function extractData() {
         'defaultAmt2': getValue("Default"),
         'costOfDeals': getValue("Cost of Deals"),
         'usedPd': getValue("Used Pay down"),
+        'previousoutstanding': getValue("Previous Outstanding"),
         'inheritedoutstanding': getValue("Inherited Outstanding"),
         'myoutstanding': getValue("My Outstanding")
     };
@@ -114,16 +136,20 @@ function runCalculation() {
         opening: getVal('openingCash'),
         frmoffice: getVal('officecash'),
         suppose: getVal('supposeColl'),
+        supposecoll2: getVal('supposeColl2'),
         recovery: getVal('recovery'),
+        recovery2: getVal('recovery2'),
         interest: getVal('interestOnDeals'),
         forms: getVal('formsSold'),
         cards: getVal('cardsSold'),
         payoff: getVal('payOff'),
         deposit: getVal('TotalDeposit'),
         defaultAmt: getVal('defaultAmt'),
+        defaultAmt2: getVal('defaultAmt2'),
         deals: getVal('costOfDeals'),
         todayPd: getVal('todayPd'),
         usedPd: getVal('usedPd'),
+        previousOut: getVal('previousoutstanding'),
         inheritedOut: getVal('inheritedoutstanding'), 
         myOut: getVal('myoutstanding'),               
         calcCell2: getVal('calcCell2'),
@@ -135,30 +161,11 @@ function runCalculation() {
         return;
     }
 
-    const totalCash = (
-        data.opening + 
-        data.frmoffice + 
-        data.suppose + 
-        data.recovery + 
-        data.interest + 
-        data.forms + 
-        data.cards + 
-        data.payoff + 
-        data.todayPd - 
-        data.usedPd
-    ) - (
-        data.deposit + 
-        data.defaultAmt + 
-        data.deals);
-    const actualCollection = (
-        data.suppose - 
-        data.defaultAmt + 
-        data.recovery + 
-        data.payoff + 
-        data.todayPd - 
-        data.usedPd);
+    const totalCash = (data.opening + data.frmoffice + data.suppose + data.recovery + data.interest + data.forms + data.cards + 
+        data.payoff + data.todayPd - data.usedPd) - (data.deposit + data.defaultAmt + data.deals);
+    const actualCollection = (data.suppose - data.defaultAmt + data.recovery + data.payoff + data.todayPd - data.usedPd);
     const computedNextDayCollection = data.suppose - data.calcCell2 + data.calcCell3;
-    const computedTotalOutstanding = data.inheritedOut + data.myOut + data.defaultAmt - data.recovery;
+    const computedTotalOutstanding = data.previousOut + data.defaultAmt2 - data.recovery;
 
     document.getElementById('nextDayCollection').innerText = "₦" + computedNextDayCollection.toLocaleString();
     document.getElementById('outstandingResult').innerText = "₦" + computedTotalOutstanding.toLocaleString();
@@ -196,7 +203,7 @@ function runCalculation() {
         status: currentReportStatus         
     };
 
-    const GOOGLE_SHEETS_API_ENDPOINT = "https://script.google.com/macros/s/AKfycby650cmbTN291QwEtcTFaVWIjMzYGT_Y8RXvsdTlqx0keybk7Aw8rR0O6QQ5OWj0ziG/exec";
+    const GOOGLE_SHEETS_API_ENDPOINT = "https://script.google.com/macros/s/AKfycbyWgNx2rc1DwojEBQfxue_99fDZnW2w_Wa9-PbwIHAP7ncM-Ju4D_GD4E2NinDRRmT0/exec";
 
     fetch(GOOGLE_SHEETS_API_ENDPOINT, {
         method: "POST",
@@ -219,11 +226,12 @@ function runNextDayCalc() {
 
 //Outstanding Calc
 function runOutstandingCalc() {
+    const outcell0 = parseFloat(document.getElementById('previousoutstanding').value) || 0;
     const outCell1 = parseFloat(document.getElementById('inheritedoutstanding').value) || 0;
     const outCell2 = parseFloat(document.getElementById('myoutstanding').value) || 0;
     const outCell3 = parseFloat(document.getElementById('defaultAmt2').value) || 0;
     const outCell4 = parseFloat(document.getElementById('recovery2').value) || 0;
-    const sumtotal = outCell1 + outCell2 + outCell3 - outCell4;
+    const sumtotal = outcell0 + outCell3 - (outCell4);
     document.getElementById('outstandingResult').innerText = "₦" + sumtotal.toLocaleString();
 }
 
