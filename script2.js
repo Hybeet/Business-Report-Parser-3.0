@@ -104,7 +104,7 @@ function extractData() {
         'defaultAmt': getValue("Default"),
         'defaultAmt2': getValue("Default"),
         'costOfDeals': getValue("Cost of Deals"),
-        'usedPd': getValue("Use[a-z]* Pa[a-z]*"),
+        'usedPd': getValue("Use[a-z]* Pa[a-z]* "),
         'previousoutstanding': getValue("Prev[a-z]*. Outstan[a-z]*"),
         'inheritedoutstanding': getValue("Inherited Outstanding"),
         'myoutstanding': getValue("My Outstanding")
