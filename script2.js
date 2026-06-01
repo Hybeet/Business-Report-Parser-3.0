@@ -61,14 +61,40 @@ function extractData() {
     // Stabilized Market Extractor: Finds "Market" or "Location", sweeps past symbols, captures text string safely
     const marketRegex = /(?:Marke[a-z]*|Locat[a-z]*)[^*:\n]*[*:]*\s*([A-Za-z0-9\s._-]+)/i;
     const marketMatch = text.match(marketRegex);
+    
     if (marketMatch && marketMatch[1].trim() !== "") {
         let rawMarket = marketMatch[1].trim();
         // Convert to Title Case to keep matches strictly predictable (e.g., "Karmo Market")
         extractedMarketName = rawMarket.toLowerCase().replace(/\b\w/g, char => char.toUpperCase());
+        
+        // --- NEW BUSINESS PARSER 3.0 AUTOMATION LINK ---
+        // Fetch the historical outstanding amount for this market dynamically
+        const GOOGLE_SHEETS_API_ENDPOINT = "https://script.google.com/macros/s/AKfycbwhKUUznxLlWbVvrKYcZJ3FR4ykaWgZj14HD_Rd7QU5a8ia6kYuWbEzACQrKD0u-323/exec";
+        
+        fetch(`${GOOGLE_SHEETS_API_ENDPOINT}?market=${encodeURIComponent(extractedMarketName)}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === "success") {
+                    const previousOutstandingInput = document.getElementById('previousoutstanding');
+                    if (previousOutstandingInput) {
+                        // Dynamically fill the input field with the sheet data
+                        previousOutstandingInput.value = data.previousOutstanding;
+                        console.log(`Successfully pulled balance for ${extractedMarketName}: ₦${data.previousOutstanding}`);
+                        
+                        // Recalculate outstanding if dependent functions exist
+                        if (typeof runOutstandingCalc === "function") {
+                            runOutstandingCalc();
+                        }
+                    }
+                }
+            })
+            .catch(err => console.error("Error pulling history payload:", err));
+        // ------------------------------------------------
+        
     } else {
         extractedMarketName = "Unknown Market";
         missingWords.push("Market Name");
-    }
+    }    
 
     // Dynamically update the UI preview elements 
     if (document.getElementById('displayDate')) document.getElementById('displayDate').value = extractedReportDate;
@@ -178,7 +204,8 @@ function runCalculation() {
         data.usedPd + 
         data.deposit + 
         data.defaultAmt + 
-        data.deals);
+        data.deals
+    );
 
     const actualCollection = (
         data.suppose - 
@@ -186,17 +213,18 @@ function runCalculation() {
         data.recovery + 
         data.payoff + 
         data.todayPd - 
-        data.usedPd);
+        data.usedPd
+    );
 
     const computedNextDayCollection = 
-    data.suppose - 
-    data.calcCell2 + 
-    data.calcCell3;
+        data.suppose - 
+        data.calcCell2 + 
+        data.calcCell3;
 
     const computedTotalOutstanding = 
-    data.previousOut + 
-    data.defaultAmt2 - 
-    data.recovery;
+        data.previousOut + 
+        data.defaultAmt2 - 
+        data.recovery;
 
     document.getElementById('nextDayCollection').innerText = "₦" + computedNextDayCollection.toLocaleString();
     document.getElementById('outstandingResult').innerText = "₦" + computedTotalOutstanding.toLocaleString();
@@ -234,7 +262,7 @@ function runCalculation() {
         status: currentReportStatus         
     };
 
-    const GOOGLE_SHEETS_API_ENDPOINT = "https://script.google.com/macros/s/AKfycbyWgNx2rc1DwojEBQfxue_99fDZnW2w_Wa9-PbwIHAP7ncM-Ju4D_GD4E2NinDRRmT0/exec";
+    const GOOGLE_SHEETS_API_ENDPOINT = "https://script.google.com/macros/s/AKfycbwhKUUznxLlWbVvrKYcZJ3FR4ykaWgZj14HD_Rd7QU5a8ia6kYuWbEzACQrKD0u-323/exec";
 
     fetch(GOOGLE_SHEETS_API_ENDPOINT, {
         method: "POST",
@@ -258,11 +286,9 @@ function runNextDayCalc() {
 //Outstanding Calc
 function runOutstandingCalc() {
     const outcell0 = parseFloat(document.getElementById('previousoutstanding').value) || 0;
-    const outCell1 = parseFloat(document.getElementById('inheritedoutstanding').value) || 0;
-    const outCell2 = parseFloat(document.getElementById('myoutstanding').value) || 0;
     const outCell3 = parseFloat(document.getElementById('defaultAmt2').value) || 0;
     const outCell4 = parseFloat(document.getElementById('recovery2').value) || 0;
-    const sumtotal = outcell0 + outCell3 - (outCell4);
+    const sumtotal = outcell0 + outCell3 - outCell4;
     document.getElementById('outstandingResult').innerText = "₦" + sumtotal.toLocaleString();
 }
 
