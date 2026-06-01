@@ -25,4 +25,4 @@ Sample Input & Workflow
  3. *Verify & Sync*: The operator checks the calculated totals on the dashboard and hits calculate/sync to seamlessly log the entry into the primary tracking spreadsheet.
 
 Live Demo
-view the live website here: https://hybeet007.github.io/Business-Report-Parser/
+view the live website here: https://hybeet.github.io/Business-Report-Parser/
