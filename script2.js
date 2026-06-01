@@ -69,9 +69,10 @@ function extractData() {
         
         // --- NEW BUSINESS PARSER 3.0 AUTOMATION LINK ---
         // Fetch the historical outstanding amount for this market dynamically
-        const GOOGLE_SHEETS_API_ENDPOINT = "https://script.google.com/macros/s/AKfycbwhKUUznxLlWbVvrKYcZJ3FR4ykaWgZj14HD_Rd7QU5a8ia6kYuWbEzACQrKD0u-323/exec";
+        const GOOGLE_SHEETS_API_ENDPOINT = "https://script.google.com/macros/s/AKfycbz9bV2QMSBWlN0f-hw7BBKbOuytq1XtSp41jObeDyG7VSH7AjYB-ucZvpstpDeDRVH7/exec";
         
-        fetch(`${GOOGLE_SHEETS_API_ENDPOINT}?market=${encodeURIComponent(extractedMarketName)}`)
+        fetch(`${GOOGLE_SHEETS_API_ENDPOINT}?market=${encodeURIComponent(extractedMarketName)
+        }&excludeDate=${encodeURIComponent(extractedReportDate)}`)
             .then(response => response.json())
             .then(data => {
                 if (data.status === "success") {
@@ -79,7 +80,8 @@ function extractData() {
                     if (previousOutstandingInput) {
                         // Dynamically fill the input field with the sheet data
                         previousOutstandingInput.value = data.previousOutstanding;
-                        console.log(`Successfully pulled balance for ${extractedMarketName}: ₦${data.previousOutstanding}`);
+                        console.log(`Successfully pulled prior balance for ${extractedMarketName}: 
+                            ₦${data.previousOutstanding}`);
                         
                         // Recalculate outstanding if dependent functions exist
                         if (typeof runOutstandingCalc === "function") {
@@ -262,7 +264,7 @@ function runCalculation() {
         status: currentReportStatus         
     };
 
-    const GOOGLE_SHEETS_API_ENDPOINT = "https://script.google.com/macros/s/AKfycbwhKUUznxLlWbVvrKYcZJ3FR4ykaWgZj14HD_Rd7QU5a8ia6kYuWbEzACQrKD0u-323/exec";
+    const GOOGLE_SHEETS_API_ENDPOINT = "https://script.google.com/macros/s/AKfycbz9bV2QMSBWlN0f-hw7BBKbOuytq1XtSp41jObeDyG7VSH7AjYB-ucZvpstpDeDRVH7/exec";
 
     fetch(GOOGLE_SHEETS_API_ENDPOINT, {
         method: "POST",
