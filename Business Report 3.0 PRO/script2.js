@@ -69,9 +69,9 @@ function extractData() {
         
         // --- NEW BUSINESS PARSER 3.0 AUTOMATION LINK ---
         // Fetch the historical outstanding amount for this market dynamically
-        const GOOGLE_SHEETS_API_ENDPOINT = "https://script.google.com/macros/s/AKfycbwhKUUznxLlWbVvrKYcZJ3FR4ykaWgZj14HD_Rd7QU5a8ia6kYuWbEzACQrKD0u-323/exec";
+        const GOOGLE_SHEETS_API_ENDPOINT ="https://script.google.com/macros/s/AKfycbwUrEKDUh6yRcd9OCKyCisdnEmqr9IKZhi6sID5oRAH_Ed2_Nrb7jPJCbGBXv4g53-D/exec";
         
-        fetch(`${GOOGLE_SHEETS_API_ENDPOINT}?market=${encodeURIComponent(extractedMarketName)}`)
+        fetch(`${GOOGLE_SHEETS_API_ENDPOINT}?market=${encodeURIComponent(extractedMarketName)}&excludeDate=${encodeURIComponent(extractedReportDate)}`)
             .then(response => response.json())
             .then(data => {
                 if (data.status === "success") {
@@ -79,7 +79,7 @@ function extractData() {
                     if (previousOutstandingInput) {
                         // Dynamically fill the input field with the sheet data
                         previousOutstandingInput.value = data.previousOutstanding;
-                        console.log(`Successfully pulled balance for ${extractedMarketName}: ₦${data.previousOutstanding}`);
+                        console.log(`Successfully pulled prior balance for ${extractedMarketName}: ₦${data.previousOutstanding}`);
                         
                         // Recalculate outstanding if dependent functions exist
                         if (typeof runOutstandingCalc === "function") {
@@ -130,8 +130,8 @@ function extractData() {
         'defaultAmt': getValue("Default"),
         'defaultAmt2': getValue("Default"),
         'costOfDeals': getValue("Cost of Deals"),
-        'usedPd': getValue("Use[a-z]* Pa[a-z]* "),
-        'previousoutstanding': getValue("Prev[a-z]*. Outstan[a-z]*"),
+        'usedPd': getValue("Use[a-z]* Pa"),
+        'previousoutstanding': getValue("Prev[a-z]*. Outstan"),
         'inheritedoutstanding': getValue("Inherited Outstanding"),
         'myoutstanding': getValue("My Outstanding")
     };
@@ -156,8 +156,21 @@ function extractData() {
 }
 
 // --- CALCULATION LOGIC & GOOGLE SHEETS TRANSMISSION ---
-function runCalculation() {
-    const getVal = (id) => parseFloat(document.getElementById(id).value) || 0;
+    async function runCalculation() {
+        const getVal = (id) => parseFloat(document.getElementById(id).value) || 0;
+
+        // 1. Get references to our elements
+        const warningFlag = document.getElementById('mismatch-warning-flag');
+        const overwriteCheckbox =
+        document.getElementById('overwrite-override-checkbox');    
+
+        // 2. Read the checkbox value FIRST before modifying any UI states
+        const isOverrideTicked = overwriteCheckbox ? overwriteCheckbox.checked : false;
+
+        if (!isOverrideTicked && warningFlag) {
+            warningFlag.style.display = "none";
+        }
+    
 
     const data = {
         opening: getVal('openingCash'),
@@ -226,6 +239,68 @@ function runCalculation() {
         data.defaultAmt2 - 
         data.recovery;
 
+    // --- NEW ANTI-OVERWRITE & VERIFICATION INTERCEPTOR ---
+    const GOOGLE_SHEETS_API_ENDPOINT ="https://script.google.com/macros/s/AKfycbwUrEKDUh6yRcd9OCKyCisdnEmqr9IKZhi6sID5oRAH_Ed2_Nrb7jPJCbGBXv4g53-D/exec";
+    
+    try {
+        const verifyUrl = `${GOOGLE_SHEETS_API_ENDPOINT}?checkDate=${encodeURIComponent(extractedReportDate)}&checkMarket=${encodeURIComponent(extractedMarketName)}`;
+        const checkResponse = await fetch(verifyUrl);
+        const logStatus = await checkResponse.json();
+
+        if (logStatus && logStatus.exists === true) {
+            let varianceList = [];
+
+            if (parseFloat(logStatus.actualCollection) !== actualCollection) {
+                varianceList.push(`Actual Collection (Sheet: ₦${parseFloat(logStatus.actualCollection).toLocaleString()} 
+                vs 
+                Input: ₦${actualCollection.toLocaleString()})`);
+            }
+            if (parseFloat(logStatus.totalCashToday) !== totalCash) {
+                varianceList.push(`Total Cash Today (Sheet: ₦${parseFloat(logStatus.totalCashToday).toLocaleString()} 
+                vs 
+                Input: ₦${totalCash.toLocaleString()})`);
+            }
+            if (parseFloat(logStatus.totalOutstanding) !== computedTotalOutstanding) {
+                varianceList.push(`Total Outstanding (Sheet: ₦${parseFloat(logStatus.totalOutstanding).toLocaleString()} 
+                vs 
+                Input: ₦${computedTotalOutstanding.toLocaleString()})`);
+            }
+            if (parseFloat(logStatus.nextDayCollection) !== computedNextDayCollection) {
+                varianceList.push(`Next Day Collection (Sheet: ₦${parseFloat(logStatus.nextDayCollection).toLocaleString()} 
+                vs 
+                Input: ₦${computedNextDayCollection.toLocaleString()})`);
+            }
+            // Place 2 Modification: Check our pre-read override state
+            if (varianceList.length > 0 && warningFlag) {
+                if (isOverrideTicked) {
+                    // SUCCESS: User checked the box! 
+                    console.log("Authorized Overwrite: Bypassing validation wall to update ledger record.");
+                    
+                    // Clear the warning flag UI and reset checkbox since we are proceeding to sync
+                    warningFlag.style.display = "none";
+                    if (overwriteCheckbox) overwriteCheckbox.checked = false;
+                    
+                    // Do NOT return. Let the code slide past and complete the database sync payload!
+                } else {
+                    // Box is not checked. Present the mismatch details like normal
+                    const detailsContainer = document.getElementById('warning-details');
+                    if (detailsContainer) {
+                        detailsContainer.innerHTML = `An existing entry for <strong>${extractedMarketName}</strong> on 
+                        <strong>${extractedReportDate}</strong> was detected. 
+                        The values you are currently submitting do not match the documented ledger record:<br><ul><li>` + 
+                        varianceList.join("</li><li>") + `</li></ul>Please re-verify raw inputs or check the override box below 
+                        if the original sheet record was incorrect.`;
+                    }
+                    warningFlag.style.display = "block";
+                    warningFlag.scrollIntoView({ behavior: 'smooth' });
+                    return; // Stop execution loop immediately
+                    }
+                }
+            }
+        } catch (auditError) {
+            console.error("Ledger compliance verification exception:", auditError);
+        }
+
     document.getElementById('nextDayCollection').innerText = "₦" + computedNextDayCollection.toLocaleString();
     document.getElementById('outstandingResult').innerText = "₦" + computedTotalOutstanding.toLocaleString();
 
@@ -261,8 +336,6 @@ function runCalculation() {
         nextDayCollection: computedNextDayCollection, 
         status: currentReportStatus         
     };
-
-    const GOOGLE_SHEETS_API_ENDPOINT = "https://script.google.com/macros/s/AKfycbwhKUUznxLlWbVvrKYcZJ3FR4ykaWgZj14HD_Rd7QU5a8ia6kYuWbEzACQrKD0u-323/exec";
 
     fetch(GOOGLE_SHEETS_API_ENDPOINT, {
         method: "POST",

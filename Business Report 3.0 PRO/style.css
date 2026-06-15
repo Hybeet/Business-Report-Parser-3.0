@@ -7,16 +7,23 @@
 }
 
 body { 
-    font-family: 'Segoe UI', sans-serif; 
-    background: #f1f5f9; 
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
+    /*background-color: #f1f5f9;*/
+    background-image: url('images/loan-pattern.jpg');
+    background-repeat: repeat; 
+    background-size: 180px 180px;
+    background-blend-mode: overlay;
+    opacity: 1;
     margin: 0; 
     padding: 20px; 
-    color: #334155;
+    color: #000000;
 }
 
 .main-wrapper { 
     max-width: 1400px; 
     margin: auto; 
+    background-color: #eaf2f9;
+    padding: 30px;
 }
 
 header { 
