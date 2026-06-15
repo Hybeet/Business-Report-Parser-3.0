@@ -11,7 +11,7 @@
     <div class="main-wrapper">
         <header>
             <h2>📊 Business Report Parser 3.0 Pro</h2>
-            <p>Unified Data Extraction, Interactive Verification Form and Quick Utilities.</p>
+            <p><strong>Data Extraction, Interactive Verification Form and Quick Utilities.</strong></p>
         </header>
 
         <div class="dashboard-grid">
@@ -81,6 +81,18 @@
                             <div class="input-group"><label>Cards Sold</label><input type="number" id="cardsSold" value="0"></div>
                         </div>
                     </div>
+                    <div id="mismatch-warning-flag" 
+                         style="display: none; background-color: #7f1d1d; border: 2px solid #ef4444; 
+                         color: #fecaca; padding: 15px; border-radius: 8px; margin: 20px 0;">
+                        <strong>⚠️ WARNING: Data Mismatch Detected!</strong>
+                        <p id="warning-details">The values you are calculating do not match the original record previously synced to the Google Sheet for this report.</p>
+                        <br/>
+                        <label style="color: #fca5a5; font-weight: bold; cursor: pointer; 
+                        display: inline-flex; align-items: center; gap: 8px;">
+                            <input type="checkbox" id="overwrite-override-checkbox">
+                            I have verified the new inputs are correct. Overwrite the existing sheet record.
+                        </label>
+                    </div>
                     <button type="button" id="calculateBtn">Step 2: Run Calculation &amp; Sync Ledger</button>
                 </form>
 
@@ -136,7 +148,7 @@
             </div>
         </div>
         <footer>
-                <p>To get your synced Data click the button below:</p>
+                <p><strong>Get your synced Data by clicking the button below:</strong></p>
             <button type="button" id="syncBtn" class="primary-btn">
                 <a href="https://docs.google.com/spreadsheets/d/113ybJNtsmhwXSPuKVpYcB9LzW6ooDTNA9cMfXfooLxs/edit?usp=sharing" target="_blank">Sync Data & View Dashboard</a>
             </button>
