@@ -69,7 +69,7 @@ function extractData() {
         
         // --- NEW BUSINESS PARSER 3.0 AUTOMATION LINK ---
         // Fetch the historical outstanding amount for this market dynamically
-        const GOOGLE_SHEETS_API_ENDPOINT ="https://script.google.com/macros/s/AKfycbwUrEKDUh6yRcd9OCKyCisdnEmqr9IKZhi6sID5oRAH_Ed2_Nrb7jPJCbGBXv4g53-D/exec";
+        const GOOGLE_SHEETS_API_ENDPOINT ="https://script.google.com/macros/s/AKfycbwH5CtYoh2LTTs3hPCxq45ZeJiGTbRcKSdEgW8QBAFW8mp8J1bM4dV31KQSyHW6SP7Z/exec";
         
         fetch(`${GOOGLE_SHEETS_API_ENDPOINT}?market=${encodeURIComponent(extractedMarketName)}&excludeDate=${encodeURIComponent(extractedReportDate)}`)
             .then(response => response.json())
@@ -126,6 +126,7 @@ function extractData() {
         'formsSold': getValue("daily forms sold"),
         'cardsSold': getValue("daily cards sold"),
         'payOff': getValue("pay[a-z]* off collected Today"),
+        'payOff2': getValue("pay[a-z]* off collected Today"),
         'TotalDeposit': getValue("Total Deposits to Bank"),
         'defaultAmt': getValue("Default"),
         'defaultAmt2': getValue("Default"),
@@ -184,6 +185,7 @@ function extractData() {
         forms: getVal('formsSold'),
         cards: getVal('cardsSold'),
         payoff: getVal('payOff'),
+        payoff2: getVal('payOff2'),
         deposit: getVal('TotalDeposit'),
         defaultAmt: getVal('defaultAmt'),
         defaultAmt2: getVal('defaultAmt2'),
@@ -232,7 +234,8 @@ function extractData() {
     const computedNextDayCollection = 
         data.suppose - 
         data.calcCell2 + 
-        data.calcCell3;
+        data.calcCell3 +
+        data.payoff;
 
     const computedTotalOutstanding = 
         data.previousOut + 
@@ -240,7 +243,7 @@ function extractData() {
         data.recovery;
 
     // --- NEW ANTI-OVERWRITE & VERIFICATION INTERCEPTOR ---
-    const GOOGLE_SHEETS_API_ENDPOINT ="https://script.google.com/macros/s/AKfycbwUrEKDUh6yRcd9OCKyCisdnEmqr9IKZhi6sID5oRAH_Ed2_Nrb7jPJCbGBXv4g53-D/exec";
+    const GOOGLE_SHEETS_API_ENDPOINT ="https://script.google.com/macros/s/AKfycbwH5CtYoh2LTTs3hPCxq45ZeJiGTbRcKSdEgW8QBAFW8mp8J1bM4dV31KQSyHW6SP7Z/exec";
     
     try {
         const verifyUrl = `${GOOGLE_SHEETS_API_ENDPOINT}?checkDate=${encodeURIComponent(extractedReportDate)}&checkMarket=${encodeURIComponent(extractedMarketName)}`;
@@ -352,7 +355,8 @@ function runNextDayCalc() {
     const cell1 = parseFloat(document.getElementById('supposeColl2').value) || 0;
     const cell2 = parseFloat(document.getElementById('calcCell2').value) || 0;
     const cell3 = parseFloat(document.getElementById('calcCell3').value) || 0;
-    const sumtotal = cell1 - cell2 + cell3;
+    const cell4 = parseFloat(document.getElementById('payOff2').value) || 0;
+    const sumtotal = cell1 - cell2 + cell3 - cell4;
     document.getElementById('nextDayCollection').innerText = "₦" + sumtotal.toLocaleString();
 }
 
