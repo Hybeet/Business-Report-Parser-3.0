@@ -232,10 +232,10 @@ function extractData() {
     );
 
     const computedNextDayCollection = 
-        data.suppose - 
-        data.calcCell2 + 
-        data.calcCell3 +
-        data.payoff;
+        data.supposecoll2 - (
+        data.calcCell2 +
+        data.payoff2 )+ 
+        data.calcCell3;
 
     const computedTotalOutstanding = 
         data.previousOut + 
@@ -356,7 +356,7 @@ function runNextDayCalc() {
     const cell2 = parseFloat(document.getElementById('calcCell2').value) || 0;
     const cell3 = parseFloat(document.getElementById('calcCell3').value) || 0;
     const cell4 = parseFloat(document.getElementById('payOff2').value) || 0;
-    const sumtotal = cell1 - cell2 + cell3 - cell4;
+    const sumtotal = cell1 - (cell2  + cell4) + cell3;
     document.getElementById('nextDayCollection').innerText = "₦" + sumtotal.toLocaleString();
 }
 
