@@ -292,3 +292,109 @@ th, td {
     padding: 8px; 
     border-bottom: 1px solid #e2e8f0; 
 }
+
+/* =========================================================================
+   📱 MOBILE LAYOUT COMPLIANCE ENGINE (Max-Width: 768px)
+   ========================================================================= */
+@media screen and (max-width: 768px) {
+    
+    /* 1. Prevent Horizontal Page Bleeding & Scale Padding */
+    body {
+        padding: 10px !important;
+    }
+
+    .main-wrapper {
+        padding: 15px !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+    }
+
+    header h2 {
+        font-size: 1.4rem !important;
+        text-align: center;
+    }
+
+    header p {
+        font-size: 0.85rem !important;
+        text-align: center;
+    }
+
+    /* 2. Deconstruct 3-Column Grid into a Stacked Stream */
+    .dashboard-grid {
+        grid-template-columns: 100% !important;
+        gap: 15px !important;
+    }
+
+    /* 3. Force Panels, Modules & Textareas to Fluid Full Width */
+    .panel, 
+    .left-compartment, 
+    .column,
+    .mini-calc-panel,
+    .mini-calc-panel2 {
+        width: 100% !important;
+        max-width: 100% !important;
+        min-width: 100% !important;
+        box-sizing: border-box !important;
+    }
+
+    textarea {
+        height: 300px !important; /* Scaled down for compact mobile thumb typing */
+    }
+
+    /* 4. Metadata Strip & Grids Packing Realignment */
+    .metadata-bar,
+    .grid-2,
+    .calc-grid,
+    .calc-grid2 {
+        grid-template-columns: 100% !important;
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 10px !important;
+    }
+
+    /* 5. Mobile Touch-Target Input Scaling */
+    input[type="text"], 
+    input[type="number"], 
+    select {
+        width: 100% !important;
+        box-sizing: border-box !important;
+        font-size: 16px !important; /* ⚠️ CRITICAL: Prevents iOS Safari zoom on focus */
+        padding: 12px !important; 
+    }
+
+    .calc-input {
+        text-align: left !important;
+    }
+
+    /* 6. Fluid Stacked Call-To-Action Buttons */
+    button, 
+    .calc-action-btn, 
+    #calculateBtn, 
+    #autoFillBtn {
+        width: 100% !important;
+        padding: 14px !important;
+        font-size: 15px !important;
+        box-sizing: border-box !important;
+    }
+
+    /* 7. Data Audit Trail Table Horizontal Swipe Layer Safeguard */
+    #tableContainer {
+        width: 100% !important;
+        overflow-x: auto !important; /* Fluid horizontal swipe layer isolated to the matrix */
+        -webkit-overflow-scrolling: touch;
+        box-sizing: border-box !important;
+    }
+
+    table {
+        width: 100% !important;
+        white-space: nowrap !important; /* Keeps table rows from breaking awkwardly */
+    }
+
+    /* Footer link wrapping security */
+    footer button a {
+        display: block !important;
+        width: 100% !important;
+        white-space: normal !important;
+        font-size: 0.9rem !important;
+    }
+}
