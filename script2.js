@@ -96,7 +96,7 @@ function extractData() {
         'TotalDeposit': getValue("Total Deposits to Bank"),
         'defaultAmt': getValue("Default"),
         'defaultAmt2': getValue("Default"),
-        'costOfDeals': getValue("Cost[a-z]*"),
+        'costOfDeals': getValue("Cos[a-z]*"),
         'usedPd': getValue("Use[a-z]* Pa"),
         'previousoutstanding': getValue("Prev[a-z]*. Outstan"),
         'inheritedoutstanding': getValue("Inherited Outstanding"),
