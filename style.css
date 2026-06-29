@@ -179,6 +179,18 @@ textarea {
     cursor: not-allowed; 
 }
 
+.metadata-group2 input[type="text"] { 
+    width: 100%; 
+    padding: 8px; 
+    border: 1px solid #cbd5e1; 
+    border-radius: 4px; 
+    box-sizing: border-box;
+    background: #e2e8f0;
+    color: #0f172a;
+    font-weight: bold;
+    cursor: auto; 
+}
+
 /* Form Column */
 .form-section { 
     background: #f8fafc; 
